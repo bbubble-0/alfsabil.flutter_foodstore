@@ -1,3 +1,4 @@
+
 import 'package:dio/dio.dart';
 import 'package:either_dart/either.dart';
 import 'package:flutter_foodstore/resource/model/order_model.dart';
@@ -8,31 +9,47 @@ class OrderRemoteResource {
 
   OrderRemoteResource(this._dio);
 
-  Future<Either<String, PagingModel>> fetchOrders({int page = 0}) async {
+  Future<Either<String, PagingModel>> fetchOrders({
+    int page = 1,
+  }) async {
     try {
-      final response = await _dio.get('customer/my-order?page=$page');
-      final result =
-          PagingModel.fromMap(response.data['data'], OrderModel.fromMap);
+      final response = await _dio.get(
+        'customer/my-orders',
+        queryParameters: {'page': page},
+      );
+
+      final result = PagingModel.fromMap(
+        response.data['data'],
+        OrderModel.fromMap,
+      );
+
       return Right(result);
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
-        return Left(e.response?.statusCode?.toString() ?? '');
-      } else {
-        return Left(e.toString());
+        return Left('401');
       }
+      return Left(e.toString());
+    } catch (e) {
+      return Left(e.toString());
     }
   }
 
-  Future<Either<String, dynamic>> detailOrder(String snapToken) async {
+  Future<Either<String, dynamic>> detailOrder(
+    String snapToken,
+  ) async {
     try {
-      final response = await _dio.get('customer/my-order/$snapToken');
+      final response = await _dio.get(
+        'customer/my-orders/${Uri.encodeComponent(snapToken)}',
+      );
+
       return Right(response.data);
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
-        return Left(e.response?.statusCode?.toString() ?? '');
-      } else {
-        return Left(e.toString());
+        return Left('401');
       }
+      return Left(e.toString());
+    } catch (e) {
+      return Left(e.toString());
     }
   }
 
@@ -49,12 +66,17 @@ class OrderRemoteResource {
           'transaction_detail_id': transactionDetailId,
           'product_id': productId,
           'rating': rating,
-          'review': review
+          'review': review,
         },
       );
+
       return Right(response.data['message']);
     } on DioException catch (e) {
-      return Left(e.response?.data['message']);
+      return Left(
+        e.response?.data?['message']?.toString() ?? e.toString(),
+      );
+    } catch (e) {
+      return Left(e.toString());
     }
   }
 }

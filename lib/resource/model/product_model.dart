@@ -1,3 +1,4 @@
+
 import 'dart:convert';
 
 import 'package:flutter_foodstore/resource/model/category_model.dart';
@@ -39,30 +40,45 @@ class ProductModel {
 
   String toJson() => json.encode(toMap());
 
-  factory ProductModel.fromMap(Map<String, dynamic> json) => ProductModel(
-        id: json["id"],
-        categoryId: json["category_id"],
-        image: json["image"],
-        title: json["title"],
-        slug: json["slug"],
-        description: json["description"],
-        price: json["price"],
-        weight: json["weight"],
+  factory ProductModel.fromMap(Map<String, dynamic> json) =>
+      ProductModel(
+        id: _toInt(json["id"]),
+        categoryId: _toInt(json["category_id"]),
+        image: json["image"]?.toString(),
+        title: json["title"]?.toString(),
+        slug: json["slug"]?.toString(),
+        description: json["description"]?.toString(),
+        price: _toInt(json["price"]),
+        weight: _toInt(json["weight"]),
         createdAt: json["created_at"] == null
             ? null
-            : DateTime.parse(json["created_at"]),
+            : DateTime.tryParse(json["created_at"].toString()),
         updatedAt: json["updated_at"] == null
             ? null
-            : DateTime.parse(json["updated_at"]),
+            : DateTime.tryParse(json["updated_at"].toString()),
         ratingsAvgRating: json["ratings_avg_rating"]?.toString(),
         category: json["category"] == null
             ? null
-            : CategoryModel.fromMap(json["category"]),
+            : CategoryModel.fromMap(
+                Map<String, dynamic>.from(json["category"]),
+              ),
         ratings: json["ratings"] == null
             ? []
             : List<RatingModel>.from(
-                json["ratings"]!.map((x) => RatingModel.fromMap(x))),
+                (json["ratings"] as List).map(
+                  (x) => RatingModel.fromMap(
+                    Map<String, dynamic>.from(x),
+                  ),
+                ),
+              ),
       );
+
+  static int? _toInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+    return int.tryParse(value.toString());
+  }
 
   Map<String, dynamic> toMap() => {
         "id": id,

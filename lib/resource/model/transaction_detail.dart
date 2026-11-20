@@ -1,6 +1,15 @@
+
 import 'dart:convert';
 
 import 'package:flutter_foodstore/resource/model/product_model.dart';
+
+int? _toInt(dynamic value) {
+  if (value == null) return null;
+  if (value is int) return value;
+  if (value is num) return value.round();
+
+  return num.tryParse(value.toString())?.round();
+}
 
 class TransactionDetail {
   final int? id;
@@ -30,11 +39,11 @@ class TransactionDetail {
 
   factory TransactionDetail.fromMap(Map<String, dynamic> json) =>
       TransactionDetail(
-        id: json["id"],
-        transactionId: json["transaction_id"],
-        productId: json["product_id"],
-        qty: json["qty"],
-        price: json["price"],
+        id: _toInt(json["id"]),
+        transactionId: _toInt(json["transaction_id"]),
+        productId: _toInt(json["product_id"]),
+        qty: _toInt(json["qty"]),
+        price: _toInt(json["price"]),
         createdAt: json["created_at"] == null
             ? null
             : DateTime.parse(json["created_at"]),
